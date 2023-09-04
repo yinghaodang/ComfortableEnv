@@ -1,16 +1,11 @@
 ###########################################
-#  此程序用于安装指定版本的python以及自定义名称的虚拟环境
+#  此程序用于初始化一些conda配置
 #  此程序适用于写入Dockerfile
-#  不支持除了bash外的其他shell
+#  不支持除了bash外的其他shell，不支持非root用户
 ###########################################
 
-# 虚拟环境名称
-# 虚拟环境名称不随便改了，写进镜像里了
-# 后续会编译其他版本的python
-VENV_NAME=hdec
-# python版本
-PYTHON_VERSION=3.9
-
+# Miniconda安装包，可自行调整
+MinicondaScript="https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/Miniconda3-py310_23.5.1-0-Linux-x86_64.sh"
 # 获取当前脚本所在的目录
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -20,7 +15,7 @@ if [ -e "$SCRIPT_DIR/miniconda.sh" ]; then
     bash "$SCRIPT_DIR/miniconda.sh" -b -p $HOME/miniconda
 else
     echo "miniconda.sh not found."
-    wget -O "$SCRIPT_DIR/miniconda.sh" https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/Miniconda3-py310_23.5.1-0-Linux-x86_64.sh
+    wget -O "$SCRIPT_DIR/miniconda.sh" ${MinicondaScript}
     bash "$SCRIPT_DIR/miniconda.sh" -b -p $HOME/miniconda
 fi
 
@@ -55,18 +50,13 @@ if [[ "$ls_output" == *"$VENV_NAME"* ]]; then
     exit 1
 fi
 
-# 创建虚拟环境
-$HOME/miniconda/bin/conda create -n $VENV_NAME python==$PYTHON_VERSION -y
-
 # 修改pip源(全局)
-$HOME/miniconda/envs/$VENV_NAME/bin/pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+$HOME/miniconda/bin/pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 
 # 升级pip
-$HOME/miniconda/envs/$VENV_NAME/bin/python -m pip install --upgrade pip
+$HOME/miniconda/bin/python -m pip install --upgrade pip
 
-# 初始化bash，默认进入hdec环境
-# 暂时只想出这种办法，这样意味着，无法使用VENV_NAME变量
-# 有更换名称需求的话，要手动修改下方配置
+# 初始化bash，默认进入base环境
 cat <<'EOF' >> $HOME/.bashrc
 __conda_setup="$('/root/miniconda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
 if [ $? -eq 0 ]; then
@@ -75,8 +65,12 @@ else
     echo "出现错误，正在退出程序"
 fi
 unset __conda_setup
-eval "conda activate hdec"
 EOF
+
+# 设置python pip conda 软链接
+ln -s /root/miniconda/bin/python /usr/bin/python
+ln -s /root/miniconda/bin/pip /usr/bin/pip
+ln -s /root/miniconda/condabin/conda /usr/bin/conda
 
 ## 其他配置
 # vim设置编码格式
