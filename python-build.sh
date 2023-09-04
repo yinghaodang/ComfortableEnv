@@ -42,14 +42,6 @@ EOF
 # 清除conda缓存
 $HOME/miniconda/bin/conda clean -i -y
 
-ls_output=$(ls /root/miniconda/envs/ 2>&1)
-
-# 检查虚拟环境是否已经存在
-if [[ "$ls_output" == *"$VENV_NAME"* ]]; then
-    echo "虚拟环境$VENV_NAME已存在，退出程序"
-    exit 1
-fi
-
 # 修改pip源(全局)
 $HOME/miniconda/bin/pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 
