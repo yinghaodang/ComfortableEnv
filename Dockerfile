@@ -1,7 +1,9 @@
-FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
+FROM nvidia/cuda:11.4.3-devel-ubuntu20.04
 
-RUN sed -i s/archive.ubuntu.com/mirrors.aliyun.com/g /etc/apt/sources.list && \
-    sed -i s/security.ubuntu.com/mirrors.aliyun.com/g /etc/apt/sources.list && \
+# 以非交互式地方式安装
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN sed -i s/archive.ubuntu.com/mirrors.tuna.tsinghua.edu.cn/g /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y \
         iputils-ping \
@@ -11,11 +13,8 @@ RUN sed -i s/archive.ubuntu.com/mirrors.aliyun.com/g /etc/apt/sources.list && \
         wget \
         unzip \
         vim \
-        iproute2 \
-        iptables \
         openssh-server \
         openssh-client \
-        aria2 \
         git && \
     rm -rf /var/lib/apt/lists/*  # 清理APT缓存
 
